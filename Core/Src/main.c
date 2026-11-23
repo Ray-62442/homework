@@ -90,7 +90,7 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-	HAL_TIM_Base_Start_IT(&htim2);
+	//HAL_TIM_Base_Start_IT(&htim2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -207,6 +207,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
@@ -228,6 +229,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PB0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */
@@ -241,7 +252,26 @@ static void MX_GPIO_Init(void)
 			HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 		}
 	}
+	void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+	{
+		static uint32_t last =0;
+		uint32_t now=HAL_GetTick();
+		if(GPIO_Pin ==GPIO_PIN_0)
+		{
+			if (now-last <20)
+			{
+				return;
+
+			}
+			else
+			{
+				last = now ;
+				HAL_GPIO_TogglePin(LED_GPIO_Port,LED_Pin);
+			}
+		}
+	}
 		
+			
 /* USER CODE END 4 */
 
 /**
